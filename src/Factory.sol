@@ -4,9 +4,7 @@ pragma solidity ^0.8.21;
 import "./Token.sol";
 
 contract Factory {
-    constructor() payable {}
-    receive() external payable {}
-    fallback() external payable {}
+    constructor() {}
 
     function create(
         string memory _name,
