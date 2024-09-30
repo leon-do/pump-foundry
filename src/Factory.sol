@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.21;
 
 import "./Token.sol";
 
 contract Factory {
+    constructor() payable {}
+    receive() external payable {}
+    fallback() external payable {}
+
     function create(
         string memory _name,
         string memory _symbol
@@ -25,6 +29,7 @@ contract Factory {
         // calculate ether amount
         uint etherAmount= _amount;
         // return ether
-        payable(msg.sender).transfer(etherAmount);
+        (bool success, ) = address(msg.sender).call{value: etherAmount}("");
+        require(success, "Transfer failed");
     }
 }
