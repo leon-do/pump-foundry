@@ -8,11 +8,11 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import "./Factory.sol";
 
 contract Token is ERC20, ERC20Burnable, Ownable, ERC20Permit {
-    constructor(
-        string memory _name,
-        string memory _symbol,
-        address _factory
-    ) ERC20Permit(_name) ERC20(_name, _symbol) Ownable(_factory) {}
+    constructor(string memory _name, string memory _symbol, address _factory)
+        ERC20Permit(_name)
+        ERC20(_name, _symbol)
+        Ownable(_factory)
+    {}
 
     // only factory can mint
     function mint(address to, uint256 amount) public onlyOwner {
