@@ -50,12 +50,12 @@ contract Factory {
     /**
      * @dev calculate token amount
      * @param _token token address
-     * @param _depositAmount in ETH
+     * @param _buyAmount in ETH
      * @return tokenAmount
      */
     function buyFor(
         address _token,
-        uint256 _depositAmount
+        uint256 _buyAmount
     ) public view returns (uint256) {
         uint256 totalSupply = Token(_token).totalSupply();
         uint256 reserveBalance = address(this).balance;
@@ -65,7 +65,7 @@ contract Factory {
                 totalSupply,
                 reserveBalance,
                 reserveRatio,
-                _depositAmount
+                _buyAmount
             );
     }
 
