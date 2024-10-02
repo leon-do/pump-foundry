@@ -21,13 +21,19 @@ contract Curve is Power {
      *
      *  @return buy return amount
      */
-    function buyFor(uint256 _supply, uint256 _reserveBalance, uint32 _reserveRatio, uint256 _buyAmount)
-        public
-        view
-        returns (uint256)
-    {
+    function buyFor(
+        uint256 _supply,
+        uint256 _reserveBalance,
+        uint32 _reserveRatio,
+        uint256 _buyAmount
+    ) public view returns (uint256) {
         // validate input
-        require(_supply > 0 && _reserveBalance > 0 && _reserveRatio > 0 && _reserveRatio <= MAX_RESERVE_RATIO);
+        require(
+            _supply > 0 &&
+                _reserveBalance > 0 &&
+                _reserveRatio > 0 &&
+                _reserveRatio <= MAX_RESERVE_RATIO
+        );
         // special case for 0 deposit amount
         if (_buyAmount == 0) {
             return 0;
@@ -39,7 +45,12 @@ contract Curve is Power {
         uint256 result;
         uint8 precision;
         uint256 baseN = _buyAmount + _reserveBalance;
-        (result, precision) = power(baseN, _reserveBalance, _reserveRatio, MAX_RESERVE_RATIO);
+        (result, precision) = power(
+            baseN,
+            _reserveBalance,
+            _reserveRatio,
+            MAX_RESERVE_RATIO
+        );
         uint256 newTokenSupply = (_supply * result) >> precision;
         return newTokenSupply - _supply;
     }
@@ -55,15 +66,19 @@ contract Curve is Power {
      *
      * @return sale return amount
      */
-    function sellFor(uint256 _supply, uint256 _reserveBalance, uint32 _reserveRatio, uint256 _sellAmount)
-        public
-        view
-        returns (uint256)
-    {
+    function sellFor(
+        uint256 _supply,
+        uint256 _reserveBalance,
+        uint32 _reserveRatio,
+        uint256 _sellAmount
+    ) public view returns (uint256) {
         // validate input
         require(
-            _supply > 0 && _reserveBalance > 0 && _reserveRatio > 0 && _reserveRatio <= MAX_RESERVE_RATIO
-                && _sellAmount <= _supply
+            _supply > 0 &&
+                _reserveBalance > 0 &&
+                _reserveRatio > 0 &&
+                _reserveRatio <= MAX_RESERVE_RATIO &&
+                _sellAmount <= _supply
         );
         // special case for 0 sell amount
         if (_sellAmount == 0) {
@@ -80,7 +95,12 @@ contract Curve is Power {
         uint256 result;
         uint8 precision;
         uint256 baseD = _supply - _sellAmount;
-        (result, precision) = power(_supply, baseD, MAX_RESERVE_RATIO, _reserveRatio);
+        (result, precision) = power(
+            _supply,
+            baseD,
+            MAX_RESERVE_RATIO,
+            _reserveRatio
+        );
         uint256 oldBalance = _reserveBalance * result;
         uint256 newBalance = _reserveBalance << precision;
         return (oldBalance - newBalance) / (result);
