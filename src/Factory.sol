@@ -15,9 +15,12 @@ contract Factory {
      * @param _symbol of token
      * @return address of token
      */
-    function create(string memory _name, string memory _symbol) public returns (address) {
+    function create(
+        string memory _name,
+        string memory _symbol
+    ) public returns (address) {
         Token newToken = new Token(_name, _symbol, address(this));
-        newToken.mint(address(this), 1);
+        newToken.mint(address(newToken), 10 * 18);
         return address(newToken);
     }
 
@@ -40,7 +43,7 @@ contract Factory {
         // calculate ether amount
         uint256 etherAmount = sellFor(_token, _sellAmount);
         // return ether
-        (bool success,) = address(msg.sender).call{value: etherAmount}("");
+        (bool success, ) = address(msg.sender).call{value: etherAmount}("");
         require(success, "Transfer failed");
     }
 
@@ -50,11 +53,20 @@ contract Factory {
      * @param _depositAmount in ETH
      * @return tokenAmount
      */
-    function buyFor(address _token, uint256 _depositAmount) public view returns (uint256) {
-        uint256 supply = Token(_token).totalSupply();
-        uint256 reserveBalance = Token(_token).balanceOf(address(this));
-        uint32 reserveRatio = 500000;
-        return curve.buyFor(supply, reserveBalance, reserveRatio, _depositAmount);
+    function buyFor(
+        address _token,
+        uint256 _depositAmount
+    ) public view returns (uint256) {
+        uint256 totalSupply = Token(_token).totalSupply();
+        uint256 reserveBalance = address(this).balance;
+        uint32 reserveRatio = 500_000;
+        return
+            curve.buyFor(
+                totalSupply,
+                reserveBalance,
+                reserveRatio,
+                _depositAmount
+            );
     }
 
     /**
@@ -63,10 +75,19 @@ contract Factory {
      * @param _sellAmount in tokens
      * @return ethAmount
      */
-    function sellFor(address _token, uint256 _sellAmount) public view returns (uint256) {
-        uint256 supply = Token(_token).totalSupply();
-        uint256 reserveBalance = Token(_token).balanceOf(address(this));
-        uint32 reserveRatio = 500000;
-        return curve.sellFor(supply, reserveBalance, reserveRatio, _sellAmount);
+    function sellFor(
+        address _token,
+        uint256 _sellAmount
+    ) public view returns (uint256) {
+        uint256 totalSupply = Token(_token).totalSupply();
+        uint256 reserveBalance = address(this).balance;
+        uint32 reserveRatio = 500_000;
+        return
+            curve.sellFor(
+                totalSupply,
+                reserveBalance,
+                reserveRatio,
+                _sellAmount
+            );
     }
 }
