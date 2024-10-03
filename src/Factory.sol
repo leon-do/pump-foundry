@@ -4,35 +4,41 @@ pragma solidity ^0.8.21;
 import "./Token.sol";
 import "./Curve.sol";
 
+/**
+ * @title Factory contract is the main entry point for users to create, buy, and sell tokens.
+ */
 contract Factory {
     Curve curve = new Curve();
 
     constructor() {}
 
     /**
-     * @dev create token
+     * @dev anyone can create tokens
      * @param _name of token
      * @param _symbol of token
-     * @return address to set the owner of the token
-     * @param _reserveRatio for the shape of the bonding curve
+     * @param _reserveRatio for the shape of the bonding curve (500_000 == 50%)
+     * @param _dexSupply of tokens to trigger deposit to DEX
+     * @return address of token
      */
     function create(
         string memory _name,
         string memory _symbol,
-        uint32 _reserveRatio
+        uint32 _reserveRatio,
+        uint256 _dexSupply
     ) public returns (address) {
         Token newToken = new Token(
             _name,
             _symbol,
             address(this),
-            _reserveRatio
+            _reserveRatio,
+            _dexSupply
         );
         newToken.mint(address(newToken), 10 * 18);
         return address(newToken);
     }
 
     /**
-     * @dev buy ETH to get tokens
+     * @dev depositing ETH to get tokens
      * @param _token token address
      */
     function buy(address _token) public payable {
@@ -41,7 +47,7 @@ contract Factory {
     }
 
     /**
-     * @dev sell tokens to get ETH
+     * @dev deposit tokens to get ETH
      * @param _token token address
      * @param _sellAmount in tokens to sell
      */
@@ -55,7 +61,7 @@ contract Factory {
     }
 
     /**
-     * @dev calculate token amount
+     * @dev buying X amount in ETH will give Y token amount of tokens
      * @param _token token address
      * @param _buyAmount in ETH
      * @return tokenAmount
@@ -63,16 +69,20 @@ contract Factory {
     function buyFor(
         address _token,
         uint256 _buyAmount
-    ) public view returns (uint256) {
+    ) public view returns (uint256 tokenAmount) {
         uint256 totalSupply = Token(_token).totalSupply();
         uint256 reserveBalance = address(this).balance;
         uint32 reserveRatio = Token(_token).RESERVE_RATIO();
-        return
-            curve.buyFor(totalSupply, reserveBalance, reserveRatio, _buyAmount);
+        tokenAmount = curve.buyFor(
+            totalSupply,
+            reserveBalance,
+            reserveRatio,
+            _buyAmount
+        );
     }
 
     /**
-     * @dev calculate ETH amount
+     * @dev selling X amount of tokens will give Y amount of ETH
      * @param _token address
      * @param _sellAmount in tokens
      * @return ethAmount
@@ -80,16 +90,15 @@ contract Factory {
     function sellFor(
         address _token,
         uint256 _sellAmount
-    ) public view returns (uint256) {
+    ) public view returns (uint256 ethAmount) {
         uint256 totalSupply = Token(_token).totalSupply();
         uint256 reserveBalance = address(this).balance;
         uint32 reserveRatio = Token(_token).RESERVE_RATIO();
-        return
-            curve.sellFor(
-                totalSupply,
-                reserveBalance,
-                reserveRatio,
-                _sellAmount
-            );
+        ethAmount = curve.sellFor(
+            totalSupply,
+            reserveBalance,
+            reserveRatio,
+            _sellAmount
+        );
     }
 }

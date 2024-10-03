@@ -16,7 +16,7 @@ contract Contract is Test {
 
     function test_Token() public {
         Factory factory = new Factory();
-        address token = factory.create("Token", "TKN", 500_000);
+        address token = factory.create("Token", "TKN", 500_000, 690);
         string memory name = Token(token).name();
         assertEq(name, "Token");
         string memory symbol = Token(token).symbol();
@@ -65,7 +65,7 @@ contract Contract is Test {
      **/
     function test_Ratio100() public payable {
         Factory factory = new Factory();
-        address token = factory.create("Token", "TKN", 1_000_000);
+        address token = factory.create("Token", "TKN", 1_000_000, 690);
         for (uint256 i = 1; i < 21; i++) {
             factory.buy{value: 1}(token);
             uint totalSupply = Token(token).totalSupply();

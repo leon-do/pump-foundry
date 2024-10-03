@@ -4,7 +4,8 @@ pragma solidity ^0.8.21;
 import "./utils/Power.sol"; // Efficient power function.
 
 /**
- * @title Bancor formula
+ * @title Curve contract uses bonding curves to calculate buy and sell amounts
+ * these are view functions used by the factory contract
  * @dev https://yos.io/2018/11/10/bonding-curves/
  */
 contract Curve is Power {
