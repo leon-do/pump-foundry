@@ -5,6 +5,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {Factory} from "../src/Factory.sol";
 import {Token} from "../src/Token.sol";
 import {Curve} from "../src/Curve.sol";
+import {Fee} from "../src/Fee.sol";
 
 contract Contract is Test {
     Curve public curve = new Curve();
@@ -72,5 +73,17 @@ contract Contract is Test {
             uint price = factory.buyFor(token, i);
             assertEq(totalSupply, price);
         }
+    }
+
+    /*
+     * fee is in parts per million
+     * 25% of 1_000_000 is 250_000
+     */
+    function test_Fee() public {
+        Fee fee = new Fee();
+        fee.setFee(250_000);
+        uint256[2] memory fees = fee.getAmount(100);
+        assertEq(fees[0], 25);
+        assertEq(fees[1], 75);
     }
 }
