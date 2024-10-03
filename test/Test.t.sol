@@ -21,6 +21,8 @@ contract Contract is Test {
         assertEq(name, "Token");
         string memory symbol = Token(token).symbol();
         assertEq(symbol, "TKN");
+        uint32 reserveRatio = Token(token).RESERVE_RATIO();
+        assertEq(reserveRatio, 500_000);
     }
 
     function test_Curve_BuyFor() public view {
