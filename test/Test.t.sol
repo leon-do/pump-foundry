@@ -7,17 +7,16 @@ import {Token} from "../src/Token.sol";
 import {Curve} from "../src/Curve.sol";
 
 contract Contract is Test {
-    Factory public factory = new Factory();
     Curve public curve = new Curve();
-    address public token;
-    address alice = address(1);
 
     function setUp() public {
-        token = factory.create("Token", "TKN");
-        startHoax(alice, 5 ether);
+        // start alice with ether
+        startHoax(address(1), 5 ether);
     }
 
-    function test_Token() public view {
+    function test_Token() public {
+        Factory factory = new Factory();
+        address token = factory.create("Token", "TKN", 500_000);
         string memory name = Token(token).name();
         assertEq(name, "Token");
         string memory symbol = Token(token).symbol();
@@ -54,5 +53,22 @@ contract Contract is Test {
         // ETHAmount = _reserveBalance * (1 - (1 - _sellAmount / _supply) ** (1 / (_reserveRatio / MAX_RESERVE_RATIO)))
         // 1000 * (1 - (1 - 100 / 1000) ** (1 / (500000 / 1000000)))
         assertEq(tokenAmount, 189);
+    }
+
+    /*
+     * ratio 1_000_000 ppm == 100%
+     * if ratio = 100% then y = 1
+     * integral of y = 1 is ∫y = x
+     * below tests ∫y = x
+     **/
+    function test_Ratio100() public payable {
+        Factory factory = new Factory();
+        address token = factory.create("Token", "TKN", 1_000_000);
+        for (uint256 i = 1; i < 21; i++) {
+            factory.buy{value: 1}(token);
+            uint totalSupply = Token(token).totalSupply();
+            uint price = factory.buyFor(token, i);
+            assertEq(totalSupply, price);
+        }
     }
 }

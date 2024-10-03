@@ -13,13 +13,20 @@ contract Factory {
      * @dev create token
      * @param _name of token
      * @param _symbol of token
-     * @return address of token
+     * @return address to set the owner of the token
+     * @param _reserveRatio for the shape of the bonding curve
      */
     function create(
         string memory _name,
-        string memory _symbol
+        string memory _symbol,
+        uint32 _reserveRatio
     ) public returns (address) {
-        Token newToken = new Token(_name, _symbol, address(this));
+        Token newToken = new Token(
+            _name,
+            _symbol,
+            address(this),
+            _reserveRatio
+        );
         newToken.mint(address(newToken), 10 * 18);
         return address(newToken);
     }
@@ -59,14 +66,9 @@ contract Factory {
     ) public view returns (uint256) {
         uint256 totalSupply = Token(_token).totalSupply();
         uint256 reserveBalance = address(this).balance;
-        uint32 reserveRatio = 500_000;
+        uint32 reserveRatio = Token(_token).RESERVE_RATIO();
         return
-            curve.buyFor(
-                totalSupply,
-                reserveBalance,
-                reserveRatio,
-                _buyAmount
-            );
+            curve.buyFor(totalSupply, reserveBalance, reserveRatio, _buyAmount);
     }
 
     /**
@@ -81,7 +83,7 @@ contract Factory {
     ) public view returns (uint256) {
         uint256 totalSupply = Token(_token).totalSupply();
         uint256 reserveBalance = address(this).balance;
-        uint32 reserveRatio = 500_000;
+        uint32 reserveRatio = Token(_token).RESERVE_RATIO();
         return
             curve.sellFor(
                 totalSupply,
