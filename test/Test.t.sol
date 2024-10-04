@@ -12,78 +12,75 @@ contract Contract is Test {
 
     function setUp() public {
         // start alice with ether
-        startHoax(address(1), 5 ether);
+        startHoax(address(1), 100 ether);
     }
 
     function test_Token() public {
         Factory factory = new Factory();
-        address token = factory.create("Token", "TKN", 500_000, 690);
+        address token = factory.create("Token", "TKN");
         string memory name = Token(token).name();
         assertEq(name, "Token");
         string memory symbol = Token(token).symbol();
         assertEq(symbol, "TKN");
-        uint32 reserveRatio = Token(token).RESERVE_RATIO();
-        assertEq(reserveRatio, 500_000);
-    }
-
-    function test_Curve_BuyFor() public view {
-        uint256 supply = 1000;
-        uint256 reserveBalance = 1000;
-        uint32 reserveRatio = 500000;
-        uint256 buyAmount = 1000;
-        uint256 tokenAmount = curve.buyFor(
-            supply,
-            reserveBalance,
-            reserveRatio,
-            buyAmount
-        );
-        // tokenAmount = _supply * ((1 + buyAmount / _reserveBalance) ^ (_reserveRatio / MAX_RESERVE_RATIO) - 1)
-        // 1000 * ((1 + 1000 / 1000) ** (500000 / 1000000) - 1)
-        assertEq(tokenAmount, 414);
-    }
-
-    function test_Curve_SellFor() public view {
-        uint256 supply = 1000;
-        uint256 reserveBalance = 1000;
-        uint32 reserveRatio = 500000;
-        uint256 sellAmount = 100;
-        uint256 tokenAmount = curve.sellFor(
-            supply,
-            reserveBalance,
-            reserveRatio,
-            sellAmount
-        );
-        // ETHAmount = _reserveBalance * (1 - (1 - _sellAmount / _supply) ** (1 / (_reserveRatio / MAX_RESERVE_RATIO)))
-        // 1000 * (1 - (1 - 100 / 1000) ** (1 / (500000 / 1000000)))
-        assertEq(tokenAmount, 189);
     }
 
     /*
-     * ratio 1_000_000 ppm == 100%
-     * if ratio = 100% then y = 1
-     * integral of y = 1 is ∫y = x
-     * below tests ∫y = x
-     **/
-    function test_Ratio100() public payable {
-        Factory factory = new Factory();
-        address token = factory.create("Token", "TKN", 1_000_000, 690);
-        for (uint256 i = 1; i < 21; i++) {
-            factory.buy{value: 1}(token);
-            uint totalSupply = Token(token).totalSupply();
-            uint price = factory.buyFor(token, i);
-            assertEq(totalSupply, price);
-        }
-    }
-
-    /*
-     * fee is in parts per million
-     * 25% of 1_000_000 is 250_000
+     * fee of 25 = 25%
      */
     function test_Fee() public {
-        Fee fee = new Fee();
-        fee.setFee(250_000);
+        Fee fee = new Fee(address(1));
+        fee.setFee(25);
         uint256[2] memory fees = fee.getAmount(100);
         assertEq(fees[0], 25);
         assertEq(fees[1], 75);
     }
+
+    function test_Curve_Sqrt() public view {
+        uint256 x = 16;
+        uint256 y = curve.sqrt(x);
+        assertEq(y, 4);
+
+        x = 121 ether;
+        y = curve.sqrt(x);
+        assertEq(y, 11 * 10 ** 9);
+
+        x = 15;
+        y = curve.sqrt(x);
+        assertEq(y, 3);
+    }
+
+    function test_Curve_BuyFor() public view {
+        uint256 totalSupply = 100_000_000 ether;
+        uint256 reserveBalance = 0.5 ether;
+        uint256 buyAmount = 1 ether;
+        uint256 tokenAmount = curve.buyFor(
+            totalSupply,
+            reserveBalance,
+            buyAmount
+        );
+        assertEq(tokenAmount, 666166676666666691666); // 666 ether
+    }
+
+    function test_Curve_SellFor() public view {
+        uint256 totalSupply = 100_000_000 ether;
+        uint256 reserveBalance = 999 ether;
+        uint256 sellAmount = 0.001 ether;
+        uint256 tokenAmount = curve.sellFor(
+            totalSupply,
+            reserveBalance,
+            sellAmount
+        );
+        assertEq(tokenAmount, 332333336673333341634); // 332 ether
+    }
+
+    // function test_Factory_Buy() public payable {
+    //     Factory factory = new Factory();
+    //     address token = factory.create("Token", "TKN");
+    //     for (uint256 i = 1; i < 21; i++) {
+    //         factory.buy{value: 0.001 ether}(token);
+    //         uint totalSupply = Token(token).totalSupply();
+    //         uint price = factory.buyFor(token, i);
+    //         console.log(totalSupply, price);
+    //     }
+    // }
 }

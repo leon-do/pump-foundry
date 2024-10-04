@@ -9,14 +9,13 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  */
 
 contract Fee is Ownable {
-    // default is 1% (in parts per million)
-    uint256 public FEE = 10_000;
+    uint256 public FEE;
 
-    constructor() Ownable(msg.sender) {}
+    constructor(address _owner) Ownable(_owner) {}
 
     /**
      * @dev owner can set the fee
-     * @param _fee in parts per million
+     * @param _fee of 25 = 25%
      */
     function setFee(uint256 _fee) public onlyOwner {
         FEE = _fee;
@@ -30,7 +29,7 @@ contract Fee is Ownable {
     function getAmount(
         uint256 _amount
     ) public view returns (uint256[2] memory) {
-        uint256 feeAmount = (_amount * FEE) / 1_000_000;
+        uint256 feeAmount = (_amount * FEE) / 100;
         uint256 remainderAmount = _amount - feeAmount;
         return [feeAmount, remainderAmount];
     }

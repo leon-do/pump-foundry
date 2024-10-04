@@ -1,109 +1,60 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-import "./utils/Power.sol"; // Efficient power function.
-
-/**
- * @title Curve contract uses bonding curves to calculate buy and sell amounts
- * these are view functions used by the factory contract
- * @dev https://yos.io/2018/11/10/bonding-curves/
- */
-contract Curve is Power {
-    uint32 private constant MAX_RESERVE_RATIO = 1_000_000;
+// Bonding Curve based on a square root curve y = m * (x ^ 1/2)
+// This bonding curve is equivalent to Bancor's Formula where reserve ratio = 2/3
+contract Curve {
+    uint256 public constant DECIMALS = 10 ** 18;
 
     /**
-     * @dev depositing ETH to get tokens
-     * @dev tokenAmount = _totalSupply * ((1 + _buyAmount / _reserveBalance) ^ (_reserveRatio / MAX_RESERVE_RATIO) - 1)
-     *
-     * @param _totalSupply continuous token total supply
-     * @param _reserveBalance total reserve token balance
-     * @param _reserveRatio reserve ratio, represented in ppm, 1-1000000
-     * @param _buyAmount deposit amount, in reserve token
-     *
-     *  @return buy return amount
+     * @dev https://ipfs.io/ipfs/QmZUHR5kjxyERb1v1vUtkFCf9ruYD41KjzRJ5qr4h4D4uL
+     * @param _totalSupply of token
+     * @param _reserveBalance in ETH
+     * @param _buyAmount in ETH
      */
     function buyFor(
         uint256 _totalSupply,
         uint256 _reserveBalance,
-        uint32 _reserveRatio,
         uint256 _buyAmount
-    ) public view returns (uint256) {
-        // validate input
-        require(
-            _totalSupply > 0 &&
-                _reserveBalance > 0 &&
-                _reserveRatio > 0 &&
-                _reserveRatio <= MAX_RESERVE_RATIO
-        );
-        // special case for 0 deposit amount
-        if (_buyAmount == 0) {
-            return 0;
-        }
-        // special case if the ratio = 100%
-        if (_reserveRatio == MAX_RESERVE_RATIO) {
-            return (_totalSupply * _buyAmount) / _reserveBalance;
-        }
-        uint256 result;
-        uint8 precision;
-        uint256 baseN = _buyAmount + _reserveBalance;
-        (result, precision) = power(
-            baseN,
-            _reserveBalance,
-            _reserveRatio,
-            MAX_RESERVE_RATIO
-        );
-        uint256 newTokenSupply = (_totalSupply * result) >> precision;
-        return newTokenSupply - _totalSupply;
+    ) public pure returns (uint256) {
+        uint256 newTotal = _totalSupply + _buyAmount;
+        uint256 newPrice = ((newTotal * newTotal) / DECIMALS) *
+            (newTotal / DECIMALS);
+        return (sqrt(newPrice) * 2) / 3 - _reserveBalance;
     }
 
     /**
-     * @dev depositing tokens to get ETH
-     * @dev ETHAmount = _reserveBalance * (1 - (1 - _sellAmount / _totalSupply) ** (1 / (_reserveRatio / MAX_RESERVE_RATIO)))
-     *
-     * @param _totalSupply continuous token total supply
-     * @param _reserveBalance total reserve token balance
-     * @param _reserveRatio constant reserve ratio, represented in ppm, 1-1000000
-     * @param _sellAmount sell amount, in the continuous token itself
-     *
-     * @return sale return amount
+     * @dev https://ipfs.io/ipfs/QmSHqTuTz8ygYnx8UnU7z3go7jmxhLR9TmVQm2E8VKTdpA
+     * @param _totalSupply of token
+     * @param _reserveBalance in ETH
+     * @param _sellAmount in tokens
      */
     function sellFor(
         uint256 _totalSupply,
         uint256 _reserveBalance,
-        uint32 _reserveRatio,
         uint256 _sellAmount
-    ) public view returns (uint256) {
-        // validate input
-        require(
-            _totalSupply > 0 &&
-                _reserveBalance > 0 &&
-                _reserveRatio > 0 &&
-                _reserveRatio <= MAX_RESERVE_RATIO &&
-                _sellAmount <= _totalSupply
-        );
-        // special case for 0 sell amount
-        if (_sellAmount == 0) {
-            return 0;
+    ) public pure returns (uint256) {
+        uint256 newTotal = _totalSupply - _sellAmount;
+        uint256 newPrice = ((newTotal * newTotal) / DECIMALS) *
+            (newTotal / DECIMALS);
+        return _reserveBalance - (sqrt(newPrice) * 2) / 3;
+    }
+
+    /**
+     * @dev Uniswap method to find square root of a number
+     * @dev https://github.com/Uniswap/v2-core/blob/v1.0.1/contracts/libraries/Math.sol
+     * @param y number to find square root of
+     */
+    function sqrt(uint y) public pure returns (uint z) {
+        if (y > 3) {
+            z = y;
+            uint x = y / 2 + 1;
+            while (x < z) {
+                z = x;
+                x = (y / x + x) / 2;
+            }
+        } else if (y != 0) {
+            z = 1;
         }
-        // special case for selling the entire supply
-        if (_sellAmount == _totalSupply) {
-            return _reserveBalance;
-        }
-        // special case if the ratio = 100%
-        if (_reserveRatio == MAX_RESERVE_RATIO) {
-            return (_reserveBalance * _sellAmount) / _totalSupply;
-        }
-        uint256 result;
-        uint8 precision;
-        uint256 baseD = _totalSupply - _sellAmount;
-        (result, precision) = power(
-            _totalSupply,
-            baseD,
-            MAX_RESERVE_RATIO,
-            _reserveRatio
-        );
-        uint256 oldBalance = _reserveBalance * result;
-        uint256 newBalance = _reserveBalance << precision;
-        return (oldBalance - newBalance) / (result);
     }
 }
