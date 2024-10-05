@@ -1,43 +1,54 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.21;
 
-// Bonding Curve based on a square root curve y = m * (x ^ 1/2)
-// This bonding curve is equivalent to Bancor's Formula where reserve ratio = 2/3
+/**
+ * @title Bonding Curve
+ * y = 2x
+ * y = price
+ * x = supply
+ * price = 2 * supply
+ * ∫price = totalPrice = supply**2
+ */
 contract Curve {
     uint256 public constant DECIMALS = 10 ** 18;
 
     /**
-     * @dev https://ipfs.io/ipfs/QmZUHR5kjxyERb1v1vUtkFCf9ruYD41KjzRJ5qr4h4D4uL
+     * @dev calculate amount of ETH user will recieve when selling X amount of tokens
+     * ethAmount = oldSupply**2 - newSupply**2
+     * newSupply = totalSupply - sellAmount
+     * ethAmount = totalSupply**2 - (totalSupply - sellAmount)**2
      * @param _totalSupply of token
-     * @param _reserveBalance in ETH
-     * @param _buyAmount in ETH
-     */
-    function buyFor(
-        uint256 _totalSupply,
-        uint256 _reserveBalance,
-        uint256 _buyAmount
-    ) public pure returns (uint256) {
-        uint256 newTotal = _totalSupply + _buyAmount;
-        uint256 newPrice = ((newTotal * newTotal) / DECIMALS) *
-            (newTotal / DECIMALS);
-        return (sqrt(newPrice) * 2) / 3 - _reserveBalance;
-    }
-
-    /**
-     * @dev https://ipfs.io/ipfs/QmSHqTuTz8ygYnx8UnU7z3go7jmxhLR9TmVQm2E8VKTdpA
-     * @param _totalSupply of token
-     * @param _reserveBalance in ETH
      * @param _sellAmount in tokens
+     * @return ethAmount
      */
     function sellFor(
         uint256 _totalSupply,
-        uint256 _reserveBalance,
         uint256 _sellAmount
-    ) public pure returns (uint256) {
-        uint256 newTotal = _totalSupply - _sellAmount;
-        uint256 newPrice = ((newTotal * newTotal) / DECIMALS) *
-            (newTotal / DECIMALS);
-        return _reserveBalance - (sqrt(newPrice) * 2) / 3;
+    ) public pure returns (uint256 ethAmount) {
+        uint256 totalSupply = _totalSupply / DECIMALS;
+        uint256 sellAmount = _sellAmount / DECIMALS;
+        uint256 newSupply = totalSupply - sellAmount;
+        ethAmount = ((totalSupply ** 2) - (newSupply ** 2)) * DECIMALS;
+    }
+
+    /**
+     * @dev calculate amount of token user will recieve when buying X amount of ETH
+     * ethAmount = newSupply**2 - oldSupply**2
+     * buyAmount = newSupply**2 - totalSupply**2
+     * solve for newSupply
+     * return newSupply - totalSupply
+     * @param _totalSupply of token
+     * @param _buyAmount in eth (msg.value)
+     * @return tokenAmount
+     */
+    function buyFor(
+        uint256 _totalSupply,
+        uint256 _buyAmount
+    ) public pure returns (uint256 tokenAmount) {
+        uint256 buyAmount = _buyAmount / DECIMALS;
+        uint256 totalSupply = _totalSupply / DECIMALS;
+        uint256 newSupply = sqrt(buyAmount + totalSupply ** 2);
+        tokenAmount = (newSupply - totalSupply) * DECIMALS;
     }
 
     /**

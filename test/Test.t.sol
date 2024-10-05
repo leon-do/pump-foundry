@@ -49,38 +49,19 @@ contract Contract is Test {
         assertEq(y, 3);
     }
 
-    function test_Curve_BuyFor() public view {
-        uint256 totalSupply = 100_000_000 ether;
-        uint256 reserveBalance = 0.5 ether;
-        uint256 buyAmount = 1 ether;
-        uint256 tokenAmount = curve.buyFor(
-            totalSupply,
-            reserveBalance,
-            buyAmount
-        );
-        assertEq(tokenAmount, 666166676666666691666); // 666 ether
+    function test_Curve_sellFor() public view {
+        uint256 totalSupply = 3 ether;
+        uint256 sellAmount = 1 ether;
+        uint256 ethAmount = curve.sellFor(totalSupply, sellAmount);
+        // 3**2 - ((3 - 1)**2)
+        assertEq(ethAmount, 5 ether);
     }
 
-    function test_Curve_SellFor() public view {
-        uint256 totalSupply = 100_000_000 ether;
-        uint256 reserveBalance = 999 ether;
-        uint256 sellAmount = 0.001 ether;
-        uint256 tokenAmount = curve.sellFor(
-            totalSupply,
-            reserveBalance,
-            sellAmount
-        );
-        assertEq(tokenAmount, 332333336673333341634); // 332 ether
+    function test_Curve_buyFor() public view {
+        uint256 totalSupply = 2 ether;
+        uint256 buyAmount = 5 ether;
+        uint256 tokenAmount = curve.buyFor(totalSupply, buyAmount);
+        // ((2**2 + 5)**0.5) - 2
+        assertEq(tokenAmount, 1 ether);
     }
-
-    // function test_Factory_Buy() public payable {
-    //     Factory factory = new Factory();
-    //     address token = factory.create("Token", "TKN");
-    //     for (uint256 i = 1; i < 21; i++) {
-    //         factory.buy{value: 0.001 ether}(token);
-    //         uint totalSupply = Token(token).totalSupply();
-    //         uint price = factory.buyFor(token, i);
-    //         console.log(totalSupply, price);
-    //     }
-    // }
 }
