@@ -50,18 +50,18 @@ contract Contract is Test {
     }
 
     function test_Curve_sellFor() public view {
-        uint256 totalSupply = 3 ether;
-        uint256 sellAmount = 1 ether;
+        uint256 totalSupply = 3;
+        uint256 sellAmount = 1;
         uint256 ethAmount = curve.sellFor(totalSupply, sellAmount);
         // 3**2 - ((3 - 1)**2)
-        assertEq(ethAmount, 5 ether);
+        assertEq(ethAmount, 5);
     }
 
     function test_Curve_buyFor() public view {
-        uint256 totalSupply = 2 ether;
-        uint256 buyAmount = 5 ether;
+        uint256 totalSupply = 2;
+        uint256 buyAmount = 5;
         uint256 tokenAmount = curve.buyFor(totalSupply, buyAmount);
         // ((2**2 + 5)**0.5) - 2
-        assertEq(tokenAmount, 1 ether);
+        assertEq(tokenAmount, 1);
     }
 }

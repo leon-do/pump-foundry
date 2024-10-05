@@ -10,8 +10,6 @@ pragma solidity ^0.8.21;
  * ∫price = totalPrice = supply**2
  */
 contract Curve {
-    uint256 public constant DECIMALS = 10 ** 18;
-
     /**
      * @dev calculate amount of ETH user will recieve when selling X amount of tokens
      * ethAmount = oldSupply**2 - newSupply**2
@@ -25,10 +23,8 @@ contract Curve {
         uint256 _totalSupply,
         uint256 _sellAmount
     ) public pure returns (uint256 ethAmount) {
-        uint256 totalSupply = _totalSupply / DECIMALS;
-        uint256 sellAmount = _sellAmount / DECIMALS;
-        uint256 newSupply = totalSupply - sellAmount;
-        ethAmount = ((totalSupply ** 2) - (newSupply ** 2)) * DECIMALS;
+        uint256 newSupply = _totalSupply - _sellAmount;
+        ethAmount = ((_totalSupply ** 2) - (newSupply ** 2));
     }
 
     /**
@@ -38,17 +34,15 @@ contract Curve {
      * solve for newSupply
      * return newSupply - totalSupply
      * @param _totalSupply of token
-     * @param _buyAmount in eth (msg.value)
+     * @param _buyAmount in msg.value
      * @return tokenAmount
      */
     function buyFor(
         uint256 _totalSupply,
         uint256 _buyAmount
     ) public pure returns (uint256 tokenAmount) {
-        uint256 buyAmount = _buyAmount / DECIMALS;
-        uint256 totalSupply = _totalSupply / DECIMALS;
-        uint256 newSupply = sqrt(buyAmount + totalSupply ** 2);
-        tokenAmount = (newSupply - totalSupply) * DECIMALS;
+        uint256 newSupply = sqrt(_buyAmount + _totalSupply ** 2);
+        tokenAmount = (newSupply - _totalSupply);
     }
 
     /**
