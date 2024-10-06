@@ -73,7 +73,9 @@ contract Factory {
         uint256 _buyAmount
     ) public view returns (uint256 tokenAmount) {
         uint256 totalSupply = Token(_token).totalSupply();
-        tokenAmount = curve.buyFor(totalSupply, _buyAmount);
+        uint256 reserveBalance = reserveBalances[_token];
+        uint32 reserveRatio = 500_000;
+        tokenAmount = curve.buyFor(totalSupply, reserveBalance, reserveRatio, _buyAmount);
     }
 
     /**
@@ -87,6 +89,8 @@ contract Factory {
         uint256 _sellAmount
     ) public view returns (uint256 ethAmount) {
         uint256 totalSupply = Token(_token).totalSupply();
-        ethAmount = curve.sellFor(totalSupply, _sellAmount);
+        uint256 reserveBalance = reserveBalances[_token];
+        uint32 reserveRatio = 500_000;
+        ethAmount = curve.sellFor(totalSupply, reserveBalance, reserveRatio, _sellAmount);
     }
 }

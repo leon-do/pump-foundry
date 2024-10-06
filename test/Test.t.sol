@@ -35,33 +35,38 @@ contract Contract is Test {
         assertEq(fees[1], 75);
     }
 
-    function test_Curve_Sqrt() public view {
-        uint256 x = 16;
-        uint256 y = curve.sqrt(x);
-        assertEq(y, 4);
-
-        x = 121 ether;
-        y = curve.sqrt(x);
-        assertEq(y, 11 * 10 ** 9);
-
-        x = 15;
-        y = curve.sqrt(x);
-        assertEq(y, 3);
+    /**
+     * https://github.com/user-attachments/assets/ec6bd1a4-8716-4783-bfdc-327970d224a1
+     */
+    function test_Curve_BuyFor() public view {
+        uint256 totalSupply = 10;
+        uint256 reserveBalance = 50;
+        uint32 reserveRatio = 500_000; // 50%
+        uint256 buyAmount = 151; // round up because of precision
+        uint256 tokenAmount = curve.buyFor(
+            totalSupply,
+            reserveBalance,
+            reserveRatio,
+            buyAmount
+        );
+        // _totalSupply * ((1 + _buyAmount / _reserveBalance) ** (_reserveRatio / MAX_RESERVE_RATIO) - 1)
+        // 10 * ((1 + 151 / 50) ** (0.5) - 1)
+        assertEq(tokenAmount, 10);
     }
 
-    function test_Curve_sellFor() public view {
-        uint256 totalSupply = 3;
-        uint256 sellAmount = 1;
-        uint256 ethAmount = curve.sellFor(totalSupply, sellAmount);
-        // 3**2 - ((3 - 1)**2)
-        assertEq(ethAmount, 5);
-    }
-
-    function test_Curve_buyFor() public view {
-        uint256 totalSupply = 2;
-        uint256 buyAmount = 5;
-        uint256 tokenAmount = curve.buyFor(totalSupply, buyAmount);
-        // ((2**2 + 5)**0.5) - 2
-        assertEq(tokenAmount, 1);
+    function test_Curve_SellFor() public view {
+        uint256 totalSupply = 20;
+        uint256 reserveBalance = 200;
+        uint32 reserveRatio = 500_000;
+        uint256 sellAmount = 10;
+        uint256 tokenAmount = curve.sellFor(
+            totalSupply,
+            reserveBalance,
+            reserveRatio,
+            sellAmount
+        );
+        // _reserveBalance * (1 - (1 - _sellAmount / _supply) ** (1 / (_reserveRatio / MAX_RESERVE_RATIO)))
+        // 200 * (1 - (1 - 10 / 20) ** (1 / 0.5))
+        assertEq(tokenAmount, 149);
     }
 }
