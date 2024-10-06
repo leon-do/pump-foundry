@@ -25,22 +25,39 @@ contract Factory {
      */
     function create(
         string memory _name,
-        string memory _symbol
+        string memory _symbol,
+        uint32 _reserveRatio
     ) public returns (address) {
-        Token newToken = new Token(_name, _symbol, address(this));
-        newToken.mint(address(newToken), 10 * 18);
+        Token newToken = new Token(
+            _name,
+            _symbol,
+            address(this),
+            _reserveRatio
+        );
+        newToken.mint(address(newToken), 1);
         return address(newToken);
     }
 
     /**
-     * @dev deposit ETH to get tokens
+     * @dev deposit ETH to get tokens (aka mint)
      * @param _token token address
      */
-    function buy(address _token) public payable {
+    function buy(address _token) public payable returns (uint256 tokenAmount) {
+        uint256 totalSupply = Token(_token).totalSupply();
+        uint256 reserveBalance = reserveBalances[_token] > 0
+            ? reserveBalances[_token]
+            : 1;
+        uint32 reserveRatio = Token(_token).reserveRatio();
+        uint256 buyAmount = msg.value;
         // calculate token amount send to user
-        uint256 tokenAmount = buyFor(_token, msg.value);
+        tokenAmount = curve.buyFor(
+            totalSupply,
+            reserveBalance,
+            reserveRatio,
+            buyAmount
+        );
         // update reserve balance
-        reserveBalances[_token] += msg.value;
+        reserveBalances[_token] += buyAmount;
         // mint tokens to user
         Token(payable(_token)).mint(msg.sender, tokenAmount);
     }
@@ -50,47 +67,26 @@ contract Factory {
      * @param _token token address
      * @param _sellAmount in tokens to sell
      */
-    function sell(address _token, uint256 _sellAmount) public payable {
+    function sell(
+        address _token,
+        uint256 _sellAmount
+    ) public payable returns (uint256 etherAmount) {
+        uint256 totalSupply = Token(_token).totalSupply();
+        uint256 reserveBalance = reserveBalances[_token];
+        uint32 reserveRatio = Token(_token).reserveRatio();
+        // calculate ether amount to send to user
+        etherAmount = curve.sellFor(
+            totalSupply,
+            reserveBalance,
+            reserveRatio,
+            _sellAmount
+        );
         // burn tokens from user
         Token(_token).burn(msg.sender, _sellAmount);
-        // calculate ether amount to send to user
-        uint256 etherAmount = sellFor(_token, _sellAmount);
         // update reserve balance
         reserveBalances[_token] -= etherAmount;
         // send ether to user
         (bool success, ) = address(msg.sender).call{value: etherAmount}("");
         require(success, "Transfer failed");
-    }
-
-    /**
-     * @dev buying X amount in ETH will give Y token amount of tokens
-     * @param _token token address
-     * @param _buyAmount in ETH
-     * @return tokenAmount
-     */
-    function buyFor(
-        address _token,
-        uint256 _buyAmount
-    ) public view returns (uint256 tokenAmount) {
-        uint256 totalSupply = Token(_token).totalSupply();
-        uint256 reserveBalance = reserveBalances[_token];
-        uint32 reserveRatio = 500_000;
-        tokenAmount = curve.buyFor(totalSupply, reserveBalance, reserveRatio, _buyAmount);
-    }
-
-    /**
-     * @dev selling X amount of tokens will give Y amount of ETH
-     * @param _token address
-     * @param _sellAmount in tokens
-     * @return ethAmount
-     */
-    function sellFor(
-        address _token,
-        uint256 _sellAmount
-    ) public view returns (uint256 ethAmount) {
-        uint256 totalSupply = Token(_token).totalSupply();
-        uint256 reserveBalance = reserveBalances[_token];
-        uint32 reserveRatio = 500_000;
-        ethAmount = curve.sellFor(totalSupply, reserveBalance, reserveRatio, _sellAmount);
     }
 }

@@ -13,6 +13,8 @@ import "./Factory.sol";
  * Minting and burning are restricted to the owner (factory contract)
  **/
 contract Token is ERC20, ERC20Burnable, Ownable, ERC20Permit {
+    uint32 public reserveRatio;
+
     /**
      * @param _name of token
      * @param _symbol of token
@@ -21,8 +23,11 @@ contract Token is ERC20, ERC20Burnable, Ownable, ERC20Permit {
     constructor(
         string memory _name,
         string memory _symbol,
-        address _owner
-    ) ERC20Permit(_name) ERC20(_name, _symbol) Ownable(_owner) {}
+        address _owner,
+        uint32 _reserveRatio
+    ) ERC20Permit(_name) ERC20(_name, _symbol) Ownable(_owner) {
+        reserveRatio = _reserveRatio;
+    }
 
     // only factory can mint
     function mint(address to, uint256 amount) public onlyOwner {

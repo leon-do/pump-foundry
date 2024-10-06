@@ -17,7 +17,8 @@ contract Contract is Test {
 
     function test_Token() public {
         Factory factory = new Factory();
-        address token = factory.create("Token", "TKN");
+        uint32 reserveRatio = 500_000;
+        address token = factory.create("Token", "TKN", reserveRatio);
         string memory name = Token(token).name();
         assertEq(name, "Token");
         string memory symbol = Token(token).symbol();
@@ -68,5 +69,17 @@ contract Contract is Test {
         // _reserveBalance * (1 - (1 - _sellAmount / _supply) ** (1 / (_reserveRatio / MAX_RESERVE_RATIO)))
         // 200 * (1 - (1 - 10 / 20) ** (1 / 0.5))
         assertEq(tokenAmount, 149);
+    }
+
+    function test_Factory_Buy_for() public {
+        Factory factory = new Factory();
+        uint32 reserveRatio = 500_000;
+        address token = factory.create("Token", "TKN", reserveRatio);
+        for (uint256 i = 0; i < 10; i++) {
+            uint256 buyAmount = factory.buy{value: 0.1 * 1 ether}(token);
+            uint256 totalSupply = Token(token).totalSupply();
+            uint256 reserveBalance = factory.reserveBalances(token);
+            console.log(buyAmount);
+        }
     }
 }
