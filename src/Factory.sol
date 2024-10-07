@@ -9,6 +9,7 @@ import "./Fee.sol";
  * @title Factory contract is the main entry point for users to create, buy, and sell tokens.
  */
 contract Factory {
+    uint256 private constant MULTIPLIER = 10 ** 18;
     mapping(address => uint256) public reserveBalances;
     Curve curve = new Curve();
     Fee fee;
@@ -34,7 +35,7 @@ contract Factory {
             address(this),
             _reserveRatio
         );
-        newToken.mint(address(newToken), 1);
+        newToken.mint(address(newToken), MULTIPLIER);
         return address(newToken);
     }
 
@@ -43,21 +44,18 @@ contract Factory {
      * @param _token token address
      */
     function buy(address _token) public payable returns (uint256 tokenAmount) {
-        uint256 totalSupply = Token(_token).totalSupply();
+        uint256 totalSupply = Token(_token).totalSupply() / MULTIPLIER;
         uint256 reserveBalance = reserveBalances[_token] > 0
             ? reserveBalances[_token]
             : 1;
         uint32 reserveRatio = Token(_token).reserveRatio();
-        uint256 buyAmount = msg.value;
+        uint256 buyAmount = msg.value / MULTIPLIER;
         // calculate token amount send to user
-        tokenAmount = curve.buyFor(
-            totalSupply,
-            reserveBalance,
-            reserveRatio,
-            buyAmount
-        );
+        tokenAmount =
+            curve.buyFor(totalSupply, reserveBalance, reserveRatio, buyAmount) *
+            MULTIPLIER;
         // update reserve balance
-        reserveBalances[_token] += buyAmount;
+        reserveBalances[_token] += buyAmount * MULTIPLIER;
         // mint tokens to user
         Token(payable(_token)).mint(msg.sender, tokenAmount);
     }
