@@ -37,18 +37,32 @@ contract Contract is Test {
     }
 
     // https://github.com/user-attachments/assets/fc25ca23-4114-4da3-a525-e3d40881f4ab
-    function test_Curve_SellFor() public view {
+    function test_Curve_SellFor_A() public view {
         uint256 totalSupply = 4;
         uint256 sellAmount = 2;
         uint256 ethAmount = curve.sellFor(totalSupply, sellAmount);
         assertEq(ethAmount, 6);
     }
 
+    function test_Curve_SellFor_B() public view {
+        uint256 totalSupply = 20;
+        uint256 sellAmount = 10;
+        uint256 ethAmount = curve.sellFor(totalSupply, sellAmount);
+        assertEq(ethAmount, 150);
+    }
+
     // https://github.com/user-attachments/assets/3827d11f-9550-4d40-9911-171798690c3c
-    function test_Curve_BuyFor() public view {
+    function test_Curve_BuyFor_A() public view {
         uint256 totalSupply = 2;
         uint256 buyAmount = 6;
         uint256 tokenAmount = curve.buyFor(totalSupply, buyAmount);
         assertEq(tokenAmount, 2);
+    }
+
+    function test_Curve_BuyFor_B() public view {
+        uint256 totalSupply = 2;
+        uint256 buyAmount = 16;
+        uint256 tokenAmount = curve.buyFor(totalSupply, buyAmount);
+        assertEq(tokenAmount, 4);
     }
 }
