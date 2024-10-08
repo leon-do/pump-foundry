@@ -10,7 +10,7 @@ pragma solidity ^0.8.21;
  * ∫price = totalPrice = supply**2
  */
 contract Curve {
-    uint256 private constant MULTIPLIER = 2;
+    uint256 private constant MULTIPLIER = 1;
     uint256 private constant MINIMUM = 0; // y intercept
 
     /**
@@ -25,17 +25,17 @@ contract Curve {
         uint256 _totalSupply,
         uint256 _sellAmount
     ) public pure returns (uint256 ethAmount) {
-        uint256 oldAUC = (_totalSupply * _totalSupply) / MULTIPLIER;
+        uint256 oldAUC = auc(_totalSupply);
         uint256 newSupply = _totalSupply - _sellAmount;
-        uint256 newAUC = (newSupply * newSupply) / MULTIPLIER;
+        uint256 newAUC = auc(newSupply);
         ethAmount = oldAUC - newAUC;
     }
 
     /**
      * @dev calculate amount of token user will recieve when buying X amount of ETH
-     * Area Under Curve (AUC) = supply**2 / MULTIPLIER
      * buyAmount =  newAUC - oldAUC
-     * buyAmount = (newSupply**2 / MULTIPLIER) - oldAUC
+     * auc = ((_supply * _supply * MULTIPLIER) / 2) - (MINIMUM * _supply)
+     * buyAmount = (((_supply * newSupply * MULTIPLIER) / 2) - (MINIMUM * newSupply)) - oldAUC
      * solve for newSupply
      * return newSupply - oldSupply
      * @param _totalSupply of token
@@ -46,9 +46,27 @@ contract Curve {
         uint256 _totalSupply,
         uint256 _buyAmount
     ) public pure returns (uint256 tokenAmount) {
-        uint256 oldAUC = (_totalSupply * _totalSupply) / MULTIPLIER;
-        uint256 newSupply = sqrt((_buyAmount + oldAUC) * MULTIPLIER);
+        uint256 oldAUC = auc(_totalSupply);
+        // Coefficients for the quadratic equation
+        uint256 A = MULTIPLIER;
+        uint256 B = 2 * MINIMUM;
+        uint256 C = 2 * (oldAUC + _buyAmount);
+        // Discriminant: B^2 + 4 * A * C (no negative signs as we're using uint256)
+        uint256 discriminant = B * B + 4 * A * C;
+        // Calculate the square root of the discriminant
+        uint256 sqrtDiscriminant = sqrt(discriminant);
+        // Using the quadratic formula: (-B + sqrt(discriminant)) / 2A
+        uint256 newSupply = (sqrtDiscriminant - B) / (2 * A);
+        // return difference between new and old supply
         tokenAmount = (newSupply - _totalSupply);
+    }
+
+    /**
+     * @dev calculate area under curve
+     * @param _supply of token
+     */
+    function auc(uint256 _supply) public pure returns (uint256) {
+        return ((_supply * _supply * MULTIPLIER) / 2) - (MINIMUM * _supply);
     }
 
     /**
