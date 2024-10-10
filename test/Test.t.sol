@@ -14,8 +14,7 @@ contract Contract is Test {
 
     function test_Token() public {
         Factory factory = new Factory();
-        uint32 reserveRatio = 500_000;
-        address token = factory.create("Token", "TKN", reserveRatio);
+        address token = factory.create("Token", "TKN");
         string memory name = Token(token).name();
         assertEq(name, "Token");
         string memory symbol = Token(token).symbol();
