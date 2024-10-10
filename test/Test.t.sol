@@ -5,7 +5,6 @@ import {Test, console} from "forge-std/Test.sol";
 import {Factory} from "../src/Factory.sol";
 import {Token} from "../src/Token.sol";
 import {Curve} from "../src/Curve.sol";
-import {Fee} from "../src/Fee.sol";
 
 contract Contract is Test {
     function setUp() public {
@@ -21,17 +20,6 @@ contract Contract is Test {
         assertEq(name, "Token");
         string memory symbol = Token(token).symbol();
         assertEq(symbol, "TKN");
-    }
-
-    /*
-     * fee of 25 = 25%
-     */
-    function test_Fee() public {
-        Fee fee = new Fee(address(1));
-        fee.setFee(25);
-        uint256[2] memory fees = fee.getAmount(100);
-        assertEq(fees[0], 25);
-        assertEq(fees[1], 75);
     }
 
     // https://github.com/user-attachments/assets/fc25ca23-4114-4da3-a525-e3d40881f4ab
