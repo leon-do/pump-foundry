@@ -23,11 +23,8 @@ contract Token is ERC20, ERC20Burnable, Ownable, ERC20Permit {
     constructor(
         string memory _name,
         string memory _symbol,
-        address _owner,
-        uint32 _reserveRatio
-    ) ERC20Permit(_name) ERC20(_name, _symbol) Ownable(_owner) {
-        reserveRatio = _reserveRatio;
-    }
+        address _owner
+    ) ERC20Permit(_name) ERC20(_name, _symbol) Ownable(_owner) {}
 
     // only factory can mint
     function mint(address to, uint256 amount) public onlyOwner {

@@ -20,14 +20,12 @@ contract Factory {
      */
     function create(
         string memory _name,
-        string memory _symbol,
-        uint32 _reserveRatio
+        string memory _symbol
     ) public returns (address) {
         Token newToken = new Token(
             _name,
             _symbol,
-            address(this),
-            _reserveRatio
+            address(this)
         );
         newToken.mint(address(newToken), 1);
         return address(newToken);
