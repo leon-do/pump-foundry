@@ -21,37 +21,41 @@ contract Contract is Test {
         assertEq(symbol, "TKN");
     }
 
-    // https://github.com/user-attachments/assets/fc25ca23-4114-4da3-a525-e3d40881f4ab
-    function test_Curve_SellFor_A() public {
-        Curve curve = new Curve(1, 0);
-        uint256 totalSupply = 4;
-        uint256 sellAmount = 2;
-        uint256 ethAmount = curve.sellFor(totalSupply, sellAmount);
-        assertEq(ethAmount, 6);
+    function test_Curve_Sqrt() public {
+        Curve curve = new Curve(1, 0); // y = 1x + 0
+        assertEq(curve.sqrt(4), 2);
+        assertEq(curve.sqrt(9), 3);
+        assertEq(curve.sqrt(24), 4); // round down
     }
 
-    function test_Curve_SellFor_B() public {
-        Curve curve = new Curve(1, 0);
-        uint256 totalSupply = 20;
-        uint256 sellAmount = 10;
-        uint256 ethAmount = curve.sellFor(totalSupply, sellAmount);
-        assertEq(ethAmount, 150);
+    function test_Curve_Abs() public {
+        Curve curve = new Curve(1, 0); // y = 1x + 0
+        assertEq(curve.abs(-4), 4);
+        assertEq(curve.abs(-9), 9);
+        assertEq(curve.abs(16), 16);
     }
 
-    // https://github.com/user-attachments/assets/3827d11f-9550-4d40-9911-171798690c3c
-    function test_Curve_BuyFor_A() public {
-        Curve curve = new Curve(1, 0);
-        uint256 totalSupply = 2;
-        uint256 buyAmount = 6;
-        uint256 tokenAmount = curve.buyFor(totalSupply, buyAmount);
-        assertEq(tokenAmount, 2);
+    function test_Curve_AUC() public {
+        Curve curve = new Curve(2, -2); // y = 2x - 2
+        // auc = x^2 - 2x
+        assertEq(curve.auc(2), 0); // 2^2 - 2*2 = 0
+        assertEq(curve.auc(3), 3); // 3^2 - 2*3 = 3
+        assertEq(curve.auc(4), 8); // 4^2 - 2*4 = 8
     }
 
-    function test_Curve_BuyFor_B() public {
-        Curve curve = new Curve(1, 0);
-        uint256 totalSupply = 2;
-        uint256 buyAmount = 16;
-        uint256 tokenAmount = curve.buyFor(totalSupply, buyAmount);
-        assertEq(tokenAmount, 4);
+    function test_Curve_sellFor() public {
+        Curve curve = new Curve(2, -2); // y = 2x - 2
+        // auc = x^2 - 2x
+        assertEq(curve.sellFor(5, 5), 15); // auc of 5 is 15
+        assertEq(curve.sellFor(4, 4), 8); // auc of 4 is 8
+        assertEq(curve.sellFor(5, (5 - 4)), (15 - 8)); // diff is 7
+    }
+
+    function test_Curve_buyFor() public {
+        Curve curve = new Curve(2, -2); // y = 2x - 2
+        // auc = x^2 - 2x
+        assertEq(curve.buyFor(2, 3), 1); // auc = 3, when supply 2 to 3 (2+1)
+        assertEq(curve.buyFor(2, 8), 2); // auc = 8, when supply 2 to 4 (2+2)
+        assertEq(curve.buyFor(2, 15), 3); // auc = 15 when supply 2 to 5 (2+3)
     }
 }

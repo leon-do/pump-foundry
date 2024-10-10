@@ -36,12 +36,12 @@ contract Factory {
      * @param _token token address
      */
     function buy(address _token) public payable returns (uint256 tokenAmount) {
-        uint256 totalSupply = Token(_token).totalSupply();
-        uint256 buyAmount = msg.value;
-        // calculate token amount send to user
-        tokenAmount = curve.buyFor(totalSupply, buyAmount);
-        // mint tokens to user
-        Token(payable(_token)).mint(msg.sender, tokenAmount);
+        // uint256 totalSupply = Token(_token).totalSupply();
+        // uint256 buyAmount = msg.value;
+        // // calculate token amount send to user
+        // tokenAmount = curve.buyFor(totalSupply, buyAmount);
+        // // mint tokens to user
+        // Token(payable(_token)).mint(msg.sender, tokenAmount);
     }
 
     /**
@@ -53,13 +53,13 @@ contract Factory {
         address _token,
         uint256 _sellAmount
     ) public payable returns (uint256 etherAmount) {
-        uint256 totalSupply = Token(_token).totalSupply();
-        // calculate ether amount to send to user
-        etherAmount = curve.sellFor(totalSupply, _sellAmount);
-        // burn tokens from user
-        Token(_token).burn(msg.sender, _sellAmount);
-        // send ether to user
-        (bool success, ) = address(msg.sender).call{value: etherAmount}("");
-        require(success, "Transfer failed");
+        // uint256 totalSupply = Token(_token).totalSupply();
+        // // calculate ether amount to send to user
+        // etherAmount = curve.sellFor(totalSupply, _sellAmount);
+        // // burn tokens from user
+        // Token(_token).burn(msg.sender, _sellAmount);
+        // // send ether to user
+        // (bool success, ) = address(msg.sender).call{value: etherAmount}("");
+        // require(success, "Transfer failed");
     }
 }
