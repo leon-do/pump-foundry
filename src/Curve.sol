@@ -27,10 +27,7 @@ contract Curve {
      * @param _sellAmount in tokens
      * @return ethAmount
      */
-    function sellFor(
-        int256 _totalSupply,
-        int256 _sellAmount
-    ) public view returns (int256) {
+    function sellFor(int256 _totalSupply, int256 _sellAmount) public view returns (int256) {
         require(_sellAmount >= 0, "sellAmount negative");
         require(_totalSupply >= 0, "totalSupply negative");
         int256 oldAUC = auc(_totalSupply);
@@ -52,10 +49,7 @@ contract Curve {
      * @param _buyAmount in msg.value
      * @return tokenAmount
      */
-    function buyFor(
-        int256 _totalSupply,
-        int256 _buyAmount
-    ) public view returns (int256) {
+    function buyFor(int256 _totalSupply, int256 _buyAmount) public view returns (int256) {
         require(_totalSupply >= 0, "totalSupply negative");
         require(_buyAmount >= 0, "buyAmount negative");
         int256 oldAUC = auc(_totalSupply);
@@ -113,7 +107,7 @@ contract Curve {
         require(y >= 0, "negative");
         if (y > 3) {
             z = y;
-            int x = y / 2 + 1;
+            int256 x = y / 2 + 1;
             while (x < z) {
                 z = x;
                 x = (y / x + x) / 2;
