@@ -52,7 +52,7 @@ contract Contract is Test {
     }
 
     function test_Curve_sellFor_ETH() public {
-        Curve curve = new Curve(2, -2, 10**18); // y = 2x - 2
+        Curve curve = new Curve(2, -2, 10 ** 18); // y = 2x - 2
         // auc = x^2 - 2x
         assertEq(curve.sellFor(5 ether, 5 ether), 15 ether); // auc of 5 is 15
         assertEq(curve.sellFor(4 ether, 4 ether), 8 ether); // auc of 4 is 8
@@ -67,8 +67,8 @@ contract Contract is Test {
         assertEq(curve.buyFor(2, 15), 3); // auc = 15 when supply 2 to 5 (2+3)
     }
 
-        function test_Curve_buyFor_ETH() public {
-        Curve curve = new Curve(2, -2, 10**18); // y = 2x - 2
+    function test_Curve_buyFor_ETH() public {
+        Curve curve = new Curve(2, -2, 10 ** 18); // y = 2x - 2
         // auc = x^2 - 2x
         assertEq(curve.buyFor(2 ether, 3 ether), 1 ether); // auc = 3, when supply 2 to 3 (2+1)
         assertEq(curve.buyFor(2 ether, 8 ether), 2 ether); // auc = 8, when supply 2 to 4 (2+2)

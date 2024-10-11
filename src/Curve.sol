@@ -29,10 +29,7 @@ contract Curve {
      * @param _sellAmount in tokens
      * @return ethAmount
      */
-    function sellFor(
-        uint256 _totalSupply,
-        uint256 _sellAmount
-    ) public view returns (uint256) {
+    function sellFor(uint256 _totalSupply, uint256 _sellAmount) public view returns (uint256) {
         require(_totalSupply >= 0, "totalSupply negative");
         require(_sellAmount >= 0, "sellAmount negative");
         int256 totalSupply = int256(_totalSupply) / DECIMALS;
@@ -56,10 +53,7 @@ contract Curve {
      * @param _buyAmount in msg.value
      * @return tokenAmount
      */
-    function buyFor(
-        uint256 _totalSupply,
-        uint256 _buyAmount
-    ) public view returns (uint256) {
+    function buyFor(uint256 _totalSupply, uint256 _buyAmount) public view returns (uint256) {
         require(_totalSupply >= 0, "totalSupply negative");
         require(_buyAmount >= 0, "buyAmount negative");
         int256 totalSupply = int256(_totalSupply) / DECIMALS;
