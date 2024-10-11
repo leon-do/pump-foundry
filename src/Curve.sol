@@ -13,10 +13,12 @@ pragma solidity ^0.8.21;
 contract Curve {
     int256 SLOPE; // slope
     int256 Y_INTERCEPT; // y intercept
+    int256 DECIMALS; // DECIMALS
 
-    constructor(int256 _slope, int256 _yIntercept) {
+    constructor(int256 _slope, int256 _yIntercept, int256 _decimals) {
         SLOPE = _slope;
         Y_INTERCEPT = _yIntercept;
+        DECIMALS = _decimals;
     }
 
     /**
@@ -27,15 +29,20 @@ contract Curve {
      * @param _sellAmount in tokens
      * @return ethAmount
      */
-    function sellFor(int256 _totalSupply, int256 _sellAmount) public view returns (int256) {
-        require(_sellAmount >= 0, "sellAmount negative");
+    function sellFor(
+        uint256 _totalSupply,
+        uint256 _sellAmount
+    ) public view returns (uint256) {
         require(_totalSupply >= 0, "totalSupply negative");
-        int256 oldAUC = auc(_totalSupply);
-        int256 newSupply = _totalSupply - _sellAmount;
+        require(_sellAmount >= 0, "sellAmount negative");
+        int256 totalSupply = int256(_totalSupply) / DECIMALS;
+        int256 sellAmount = int256(_sellAmount) / DECIMALS;
+        int256 oldAUC = auc(totalSupply);
+        int256 newSupply = totalSupply - sellAmount;
         int256 newAUC = auc(newSupply);
         int256 ethAmount = oldAUC - newAUC;
         require(ethAmount >= 0, "ethAmount negative");
-        return ethAmount;
+        return uint256(ethAmount * DECIMALS);
     }
 
     /**
@@ -49,20 +56,25 @@ contract Curve {
      * @param _buyAmount in msg.value
      * @return tokenAmount
      */
-    function buyFor(int256 _totalSupply, int256 _buyAmount) public view returns (int256) {
+    function buyFor(
+        uint256 _totalSupply,
+        uint256 _buyAmount
+    ) public view returns (uint256) {
         require(_totalSupply >= 0, "totalSupply negative");
         require(_buyAmount >= 0, "buyAmount negative");
-        int256 oldAUC = auc(_totalSupply);
+        int256 totalSupply = int256(_totalSupply) / DECIMALS;
+        int256 buyAmount = int256(_buyAmount) / DECIMALS;
+        int256 oldAUC = auc(totalSupply);
         int256 A = SLOPE;
         int256 B = 2 * Y_INTERCEPT;
-        int256 C = 2 * (oldAUC - _buyAmount);
+        int256 C = 2 * (oldAUC - buyAmount);
         // 0 = (-b ± √Δ) / 2a
         int256 delta = sqrt(abs(B * B - 4 * A * C));
         int256 newSupply = (-B + delta) / (2 * A);
         // return difference between new and old supply
-        int256 tokenAmount = newSupply - _totalSupply;
+        int256 tokenAmount = newSupply - totalSupply;
         require(tokenAmount >= 0, "tokenAmount negative");
-        return tokenAmount;
+        return uint256(tokenAmount * DECIMALS);
     }
 
     /**

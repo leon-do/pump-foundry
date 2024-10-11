@@ -22,21 +22,21 @@ contract Contract is Test {
     }
 
     function test_Curve_Sqrt() public {
-        Curve curve = new Curve(1, 0); // y = 1x + 0
+        Curve curve = new Curve(1, 0, 1); // y = 1x + 0
         assertEq(curve.sqrt(4), 2);
         assertEq(curve.sqrt(9), 3);
         assertEq(curve.sqrt(24), 4); // round down
     }
 
     function test_Curve_Abs() public {
-        Curve curve = new Curve(1, 0); // y = 1x + 0
+        Curve curve = new Curve(1, 0, 1); // y = 1x + 0
         assertEq(curve.abs(-4), 4);
         assertEq(curve.abs(-9), 9);
         assertEq(curve.abs(16), 16);
     }
 
     function test_Curve_AUC() public {
-        Curve curve = new Curve(2, -2); // y = 2x - 2
+        Curve curve = new Curve(2, -2, 1); // y = 2x - 2
         // auc = x^2 - 2x
         assertEq(curve.auc(2), 0); // 2^2 - 2*2 = 0
         assertEq(curve.auc(3), 3); // 3^2 - 2*3 = 3
@@ -44,18 +44,34 @@ contract Contract is Test {
     }
 
     function test_Curve_sellFor() public {
-        Curve curve = new Curve(2, -2); // y = 2x - 2
+        Curve curve = new Curve(2, -2, 1); // y = 2x - 2
         // auc = x^2 - 2x
         assertEq(curve.sellFor(5, 5), 15); // auc of 5 is 15
         assertEq(curve.sellFor(4, 4), 8); // auc of 4 is 8
         assertEq(curve.sellFor(5, (5 - 4)), (15 - 8)); // diff is 7
     }
 
+    function test_Curve_sellFor_ETH() public {
+        Curve curve = new Curve(2, -2, 10**18); // y = 2x - 2
+        // auc = x^2 - 2x
+        assertEq(curve.sellFor(5 ether, 5 ether), 15 ether); // auc of 5 is 15
+        assertEq(curve.sellFor(4 ether, 4 ether), 8 ether); // auc of 4 is 8
+        assertEq(curve.sellFor(5 ether, (5 ether - 4 ether)), (15 ether - 8 ether)); // diff is 7
+    }
+
     function test_Curve_buyFor() public {
-        Curve curve = new Curve(2, -2); // y = 2x - 2
+        Curve curve = new Curve(2, -2, 1); // y = 2x - 2
         // auc = x^2 - 2x
         assertEq(curve.buyFor(2, 3), 1); // auc = 3, when supply 2 to 3 (2+1)
         assertEq(curve.buyFor(2, 8), 2); // auc = 8, when supply 2 to 4 (2+2)
         assertEq(curve.buyFor(2, 15), 3); // auc = 15 when supply 2 to 5 (2+3)
+    }
+
+        function test_Curve_buyFor_ETH() public {
+        Curve curve = new Curve(2, -2, 10**18); // y = 2x - 2
+        // auc = x^2 - 2x
+        assertEq(curve.buyFor(2 ether, 3 ether), 1 ether); // auc = 3, when supply 2 to 3 (2+1)
+        assertEq(curve.buyFor(2 ether, 8 ether), 2 ether); // auc = 8, when supply 2 to 4 (2+2)
+        assertEq(curve.buyFor(2 ether, 15 ether), 3 ether); // auc = 15 when supply 2 to 5 (2+3)
     }
 }
