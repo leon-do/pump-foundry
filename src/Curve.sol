@@ -10,11 +10,13 @@ pragma solidity ^0.8.21;
  * ∫price = auc =  (m / 2 * x * x)
  */
 contract Curve {
-    uint256 SLOPE; // slope
+    uint256 SLOPE_NUMERATOR;
+    uint256 SLOPE_DENOMINATOR;
     uint256 DECIMALS; // DECIMALS
 
-    constructor(uint256 _slope, uint256 _decimals) {
-        SLOPE = _slope;
+    constructor(uint256 _slopeNumerator, uint256 _slopeDenominator, uint256 _decimals) {
+        SLOPE_NUMERATOR = _slopeNumerator;
+        SLOPE_DENOMINATOR = _slopeDenominator;
         DECIMALS = _decimals;
     }
 
@@ -26,10 +28,7 @@ contract Curve {
      * @param _sellAmount in tokens
      * @return ethAmount
      */
-    function sellFor(
-        uint256 _totalSupply,
-        uint256 _sellAmount
-    ) public view returns (uint256) {
+    function sellFor(uint256 _totalSupply, uint256 _sellAmount) public view returns (uint256) {
         uint256 totalSupply = _totalSupply / DECIMALS;
         uint256 sellAmount = _sellAmount / DECIMALS;
         uint256 oldAUC = auc(totalSupply);
@@ -49,15 +48,12 @@ contract Curve {
      * @param _buyAmount in msg.value
      * @return tokenAmount
      */
-    function buyFor(
-        uint256 _totalSupply,
-        uint256 _buyAmount
-    ) public view returns (uint256) {
+    function buyFor(uint256 _totalSupply, uint256 _buyAmount) public view returns (uint256) {
         uint256 totalSupply = _totalSupply / DECIMALS;
         uint256 buyAmount = _buyAmount / DECIMALS;
         uint256 oldAUC = auc(totalSupply);
         // solve for newSupply
-        uint256 newSupply = sqrt(((2 / SLOPE) * (buyAmount + oldAUC)));
+        uint256 newSupply = sqrt((((2 * SLOPE_DENOMINATOR) / SLOPE_NUMERATOR) * (buyAmount + oldAUC)));
         // return difference between new and old supply
         uint256 tokenAmount = newSupply - totalSupply;
         return tokenAmount * DECIMALS;
@@ -75,7 +71,7 @@ contract Curve {
      * @return area under the curve
      */
     function auc(uint256 _supply) public view returns (uint256) {
-        return ((_supply * _supply * SLOPE) / 2);
+        return (_supply * _supply * SLOPE_NUMERATOR) / SLOPE_DENOMINATOR / 2;
     }
 
     /**
