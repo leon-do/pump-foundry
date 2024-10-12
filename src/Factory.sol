@@ -8,7 +8,7 @@ import "./Curve.sol";
  * @title Factory contract is the main entry point for users to create, buy, and sell tokens.
  */
 contract Factory {
-    Curve curve = new Curve(1000, -10 ** 18, 10 ** 18);
+    Curve curve = new Curve(1000, 10 ** 15);
 
     constructor() {}
 
