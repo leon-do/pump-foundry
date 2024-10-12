@@ -53,11 +53,11 @@ contract Curve {
         uint256 _totalSupply,
         uint256 _buyAmount
     ) public view returns (uint256) {
-        uint256 totalSupply = _totalSupply / DECIMALS; // 2
-        uint256 buyAmount = _buyAmount / DECIMALS; // 1
-        uint256 oldAUC = auc(totalSupply); // 2
+        uint256 totalSupply = _totalSupply / DECIMALS;
+        uint256 buyAmount = _buyAmount / DECIMALS;
+        uint256 oldAUC = auc(totalSupply);
         // solve for newSupply
-        uint256 newSupply = sqrt(((2 / SLOPE) * (buyAmount + oldAUC))); // 2
+        uint256 newSupply = sqrt(((2 / SLOPE) * (buyAmount + oldAUC)));
         // return difference between new and old supply
         uint256 tokenAmount = newSupply - totalSupply;
         return tokenAmount * DECIMALS;
