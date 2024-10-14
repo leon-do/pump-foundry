@@ -3,7 +3,7 @@ pragma solidity ^0.8.21;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Fees is Ownable {
+contract Fee is Ownable {
     uint256 public percent = 2;
 
     constructor(address _owner) Ownable(_owner) {}

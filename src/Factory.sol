@@ -3,18 +3,18 @@ pragma solidity ^0.8.21;
 
 import "./Token.sol";
 import "./Curve.sol";
-import "./Fees.sol";
+import "./Fee.sol";
 
 /**
  * @title Factory contract is the main entry point for users to create, buy, and sell tokens.
  */
 contract Factory {
     Curve curve;
-    Fees fees;
+    Fee fee;
 
     constructor() {
         curve = new Curve(1, 10 ** 30);
-        fees = new Fees(msg.sender);
+        fee = new Fee(msg.sender);
     }
 
     /**
@@ -47,14 +47,19 @@ contract Factory {
      * @param _token token address
      * @param _sellAmount in tokens to sell
      */
-    function sell(address _token, uint256 _sellAmount) public payable returns (uint256 etherAmount) {
+    function sell(address _token, uint256 _sellAmount) public payable returns (uint256) {
         uint256 totalSupply = Token(_token).totalSupply();
         // calculate ether amount to send to user
-        etherAmount = curve.sellFor(totalSupply, _sellAmount);
+        uint256 etherAmount = curve.sellFor(totalSupply, _sellAmount);
+        uint256 feeAmount = fee.getAmount(etherAmount);
+        uint256 userAmount = etherAmount - feeAmount;
         // burn tokens from user
         Token(_token).burn(msg.sender, _sellAmount);
         // send ether to user
-        (bool success,) = address(msg.sender).call{value: etherAmount}("");
-        require(success, "Transfer failed");
+        (bool feeSuccess,) = address(msg.sender).call{value: feeAmount}("");
+        require(feeSuccess, "Fee Transfer failed");
+        (bool userSuccess,) = address(msg.sender).call{value: userAmount}("");
+        require(userSuccess, "User Transfer failed");
+        return userAmount;
     }
 }

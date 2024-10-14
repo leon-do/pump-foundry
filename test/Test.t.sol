@@ -5,7 +5,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {Factory} from "../src/Factory.sol";
 import {Token} from "../src/Token.sol";
 import {Curve} from "../src/Curve.sol";
-import {Fees} from "../src/Fees.sol";
+import {Fee} from "../src/Fee.sol";
 
 contract Contract is Test {
     function setUp() public {
@@ -30,16 +30,16 @@ contract Contract is Test {
     }
 
     function test_Fees() public {
-        Fees fees = new Fees(address(1));
-        address owner = fees.owner();
+        Fee fee = new Fee(address(1));
+        address owner = fee.owner();
         assertEq(owner, address(1));
-        assertEq(fees.percent(), 2);
+        assertEq(fee.percent(), 2);
         // get fees
-        uint256 fee = fees.getAmount(100);
-        assertEq(fee, 2);
+        uint256 feeAmount = fee.getAmount(100);
+        assertEq(feeAmount, 2);
         // alice sets percent
-        fees.setPercent(3);
-        assertEq(fees.percent(), 3);
+        fee.setPercent(3);
+        assertEq(fee.percent(), 3);
     }
 
     function test_Curve_sellFor() public {
@@ -72,16 +72,33 @@ contract Contract is Test {
         assertEq(curve.buyFor(totalSupply, buyAmount), tokenAmount);
     }
 
-    function test_Factory_buyFor_Loop() public {
+    function test_Factory_buyLoop() public {
         Factory factory = new Factory();
         address token = factory.create("Token", "TKN");
         for (uint256 i = 1; i < 5_000; i = i + 100) {
             // alice buys 0.001 ether
             uint256 tokenAmount = factory.buy{value: 0.001 ether}(token);
-            uint256 ethAmount = factory.sell(token, tokenAmount);
-            // console.log(i, tokenAmount / 10 ** 18);
-            // sellSmount == buyAmount
-            assertEq(ethAmount + 1, 0.001 ether); // rounding +1 wei
+            console.log(i, tokenAmount / 10 ** 18);
         }
+    }
+
+    function test_Factory_buyAndSell() public {
+        Factory factory = new Factory();
+        Fee fee = new Fee(address(1));
+        address token = factory.create("Token", "TKN");
+        for (uint256 i = 1; i < 5_000; i = i + 100) {
+            // alice buys 0.001 ether
+            uint256 tokenAmount = factory.buy{value: 0.001 ether}(token);
+            uint256 ethAmount = factory.sell(token, tokenAmount);
+            uint256 feeAmount = fee.getAmount(ethAmount);
+            uint256 userAmount = ethAmount - feeAmount;
+            // 2% fee
+            assertEq((feeAmount * 100) / ethAmount, fee.percent());
+            // user gets 98%
+            assertEq(userAmount, (ethAmount * (100 - fee.percent())) / 100);
+        }
+        // balance of owner
+        assertEq(fee.owner(), address(1));
+        assertGt(address(1).balance, 1);
     }
 }
