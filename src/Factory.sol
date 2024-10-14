@@ -3,14 +3,19 @@ pragma solidity ^0.8.21;
 
 import "./Token.sol";
 import "./Curve.sol";
+import "./Fees.sol";
 
 /**
  * @title Factory contract is the main entry point for users to create, buy, and sell tokens.
  */
 contract Factory {
-    Curve curve = new Curve(1, 10 ** 30);
+    Curve curve;
+    Fees fees;
 
-    constructor() {}
+    constructor() {
+        curve = new Curve(1, 10 ** 30);
+        fees = new Fees(msg.sender);
+    }
 
     /**
      * @dev anyone can create tokens

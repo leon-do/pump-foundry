@@ -14,8 +14,6 @@ import "./Factory.sol";
  *
  */
 contract Token is ERC20, ERC20Burnable, Ownable, ERC20Permit {
-    uint32 public reserveRatio;
-
     /**
      * @param _name of token
      * @param _symbol of token

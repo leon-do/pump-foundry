@@ -5,6 +5,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {Factory} from "../src/Factory.sol";
 import {Token} from "../src/Token.sol";
 import {Curve} from "../src/Curve.sol";
+import {Fees} from "../src/Fees.sol";
 
 contract Contract is Test {
     function setUp() public {
@@ -26,6 +27,19 @@ contract Contract is Test {
         assertEq(curve.sqrt(4), 2);
         assertEq(curve.sqrt(9), 3);
         assertEq(curve.sqrt(24), 4); // round down
+    }
+
+    function test_Fees() public {
+        Fees fees = new Fees(address(1));
+        address owner = fees.owner();
+        assertEq(owner, address(1));
+        assertEq(fees.percent(), 2);
+        // get fees
+        uint256 fee = fees.getAmount(100);
+        assertEq(fee, 2);
+        // alice sets percent
+        fees.setPercent(3);
+        assertEq(fees.percent(), 3);
     }
 
     function test_Curve_sellFor() public {
@@ -65,9 +79,9 @@ contract Contract is Test {
             // alice buys 0.001 ether
             uint256 tokenAmount = factory.buy{value: 0.001 ether}(token);
             uint256 ethAmount = factory.sell(token, tokenAmount);
+            // console.log(i, tokenAmount / 10 ** 18);
             // sellSmount == buyAmount
-            assertEq(ethAmount + 1, 0.001 ether); // +1 wei
-            console.log(i, tokenAmount / 10 ** 18);
+            assertEq(ethAmount + 1, 0.001 ether); // rounding +1 wei
         }
     }
 }
