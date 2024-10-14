@@ -43,18 +43,31 @@ contract Contract is Test {
     }
 
     function test_Curve_sellFor_Ether() public {
-        Curve curve = new Curve(1, 10 ** 28);
-        uint256 totalSupply = 5000 * 10 ** 18;
-        uint256 sellAmount = 5000 * 10 ** 18;
+        Curve curve = new Curve(1, 10 ** 30);
+        uint256 totalSupply = 50_000 * 10 ** 18;
+        uint256 sellAmount = 50_000 * 10 ** 18;
         uint256 ethAmount = 0.00125 ether;
         assertEq(curve.sellFor(totalSupply, sellAmount), ethAmount);
     }
 
     function test_Curve_buyFor_Ether() public {
-        Curve curve = new Curve(1, 10 ** 28);
+        Curve curve = new Curve(1, 10 ** 30);
         uint256 totalSupply = 0;
         uint256 buyAmount = 0.00125 ether;
-        uint256 tokenAmount = 5000 * 10 ** 18;
+        uint256 tokenAmount = 50_000 * 10 ** 18;
         assertEq(curve.buyFor(totalSupply, buyAmount), tokenAmount);
+    }
+
+    function test_Factory_buyFor_Loop() public {
+        Factory factory = new Factory();
+        address token = factory.create("Token", "TKN");
+        for (uint256 i = 1; i < 5_000; i = i + 100) {
+            // alice buys 0.001 ether
+            uint256 tokenAmount = factory.buy{value: 0.001 ether}(token);
+            uint256 ethAmount = factory.sell(token, tokenAmount);
+            // sellSmount == buyAmount
+            assertEq(ethAmount + 1, 0.001 ether); // +1 wei
+            console.log(i, tokenAmount / 10 ** 18);
+        }
     }
 }
