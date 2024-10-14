@@ -42,9 +42,18 @@ contract Contract is Test {
         // y = 2x
         // auc = x^2
         Curve curve = new Curve(2, 1, 10 ** 15);
-        assertEq(curve.sellFor(0.005 * 10 ** 18, 0.005 * 10 ** 18), 0.025 ether);
-        assertEq(curve.sellFor(0.004 * 10 ** 18, 0.004 * 10 ** 18), 0.016 ether);
-        assertEq(curve.sellFor(0.005 * 10 ** 18, (0.001 * 10 ** 18)), (0.009 ether)); // diff
+        assertEq(
+            curve.sellFor(0.005 * 10 ** 18, 0.005 * 10 ** 18),
+            0.025 ether
+        );
+        assertEq(
+            curve.sellFor(0.004 * 10 ** 18, 0.004 * 10 ** 18),
+            0.016 ether
+        );
+        assertEq(
+            curve.sellFor(0.005 * 10 ** 18, (0.001 * 10 ** 18)),
+            (0.009 ether)
+        ); // diff
     }
 
     function test_Curve_buyFor() public {
@@ -62,5 +71,21 @@ contract Contract is Test {
         assertEq(curve.buyFor(0, 0.002 ether), 200 * 10 ** 18);
         assertEq(curve.buyFor(0, 0.008 ether), 400 * 10 ** 18);
         assertEq(curve.buyFor(0, 0.018 ether), 600 * 10 ** 18);
+    }
+
+    function test_Factory_Buy() public {
+        Factory factory = new Factory();
+        address token = factory.create("Token", "TKN");
+        for (uint256 i = 0; i < 20; i++) {
+            // alice buys tokens
+            uint tokenAmount = factory.buy{value: 0.002 ether}(token);
+            // alice should have tokens
+            console.log(
+                i,
+                tokenAmount,
+                Token(token).balanceOf(address(1)),
+                address(factory).balance
+            );
+        }
     }
 }
