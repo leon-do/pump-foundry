@@ -12,12 +12,10 @@ pragma solidity ^0.8.21;
 contract Curve {
     uint256 SLOPE_NUMERATOR;
     uint256 SLOPE_DENOMINATOR;
-    uint256 DECIMALS; // DECIMALS
 
-    constructor(uint256 _slopeNumerator, uint256 _slopeDenominator, uint256 _decimals) {
+    constructor(uint256 _slopeNumerator, uint256 _slopeDenominator) {
         SLOPE_NUMERATOR = _slopeNumerator;
         SLOPE_DENOMINATOR = _slopeDenominator;
-        DECIMALS = _decimals;
     }
 
     /**
@@ -28,14 +26,11 @@ contract Curve {
      * @param _sellAmount in tokens
      * @return ethAmount
      */
-    function sellFor(uint256 _totalSupply, uint256 _sellAmount) public view returns (uint256) {
-        uint256 totalSupply = _totalSupply / DECIMALS;
-        uint256 sellAmount = _sellAmount / DECIMALS;
-        uint256 oldAUC = auc(totalSupply);
-        uint256 newSupply = totalSupply - sellAmount;
+    function sellFor(uint256 _totalSupply, uint256 _sellAmount) public view returns (uint256 ethAmount) {
+        uint256 oldAUC = auc(_totalSupply);
+        uint256 newSupply = _totalSupply - _sellAmount;
         uint256 newAUC = auc(newSupply);
-        uint256 ethAmount = oldAUC - newAUC;
-        return ethAmount * DECIMALS;
+        ethAmount = oldAUC - newAUC;
     }
 
     /**
@@ -48,15 +43,12 @@ contract Curve {
      * @param _buyAmount in msg.value
      * @return tokenAmount
      */
-    function buyFor(uint256 _totalSupply, uint256 _buyAmount) public view returns (uint256) {
-        uint256 totalSupply = _totalSupply / DECIMALS;
-        uint256 buyAmount = _buyAmount / DECIMALS;
-        uint256 oldAUC = auc(totalSupply);
+    function buyFor(uint256 _totalSupply, uint256 _buyAmount) public view returns (uint256 tokenAmount) {
+        uint256 oldAUC = auc(_totalSupply);
         // solve for newSupply
-        uint256 newSupply = sqrt((((2 * SLOPE_DENOMINATOR) / SLOPE_NUMERATOR) * (buyAmount + oldAUC)));
+        uint256 newSupply = sqrt((((2 * SLOPE_DENOMINATOR) / SLOPE_NUMERATOR) * (_buyAmount + oldAUC)));
         // return difference between new and old supply
-        uint256 tokenAmount = newSupply - totalSupply;
-        return tokenAmount * DECIMALS;
+        tokenAmount = newSupply - _totalSupply;
     }
 
     /**
