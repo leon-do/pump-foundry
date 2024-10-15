@@ -55,8 +55,8 @@ contract Factory {
         uint256 userAmount = etherAmount - feeAmount;
         // burn tokens from user
         Token(_token).burn(msg.sender, _sellAmount);
-        // send ether to user
-        (bool feeSuccess,) = address(msg.sender).call{value: feeAmount}("");
+        // send ether
+        (bool feeSuccess,) = address(fee.owner()).call{value: feeAmount}("");
         require(feeSuccess, "Fee Transfer failed");
         (bool userSuccess,) = address(msg.sender).call{value: userAmount}("");
         require(userSuccess, "User Transfer failed");
